@@ -5,6 +5,7 @@ import { PathfindingEngine } from '../utils/pathfinding';
 import { ROOMS, WAYPOINTS, GRAPH } from '../data/mapData';
 import LoadingPage from './LoadingPage';
 import { MapPin, Navigation, Menu, X, Home, Route, Maximize2, Minimize2 } from 'lucide-react';
+import Notification from './Notification';
 
 const CampusMap = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -18,6 +19,9 @@ const CampusMap = () => {
   const [zoom, setZoom] = useState(1);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [showNotif, setShowNotif] = useState(false);
+  const [notifMsg, setNotifMsg] = useState("");
+  const [notifType, setNotifType] = useState<"success" | "error" | "info">("info");
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -35,7 +39,10 @@ const CampusMap = () => {
     if (shortestPath.length > 0) {
       setPath(shortestPath);
     } else {
-      alert("No path found between the selected rooms.");
+      setNotifMsg("No path found between the selected rooms.");
+      setNotifType("error");
+      setShowNotif(true);
+      setTimeout(() => setShowNotif(false), 3000);
     }
   };
 
@@ -55,19 +62,20 @@ const CampusMap = () => {
 
 
   const handleFindPath = () => {
-  if (startRoom && endRoom) {
-    const pathfinder = new PathfindingEngine(GRAPH);
-    const shortestPath = pathfinder.findShortestPath(startRoom, endRoom);
-    drawPath(shortestPath);
-
-    // Auto-close sidebar on mobile
-    if (window.innerWidth < 768) {
-      setIsSidebarOpen(false);
+    if (startRoom && endRoom) {
+      const pathfinder = new PathfindingEngine(GRAPH);
+      const shortestPath = pathfinder.findShortestPath(startRoom, endRoom);
+      drawPath(shortestPath);
+      if (window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+      }
+    } else {
+      setNotifMsg("Please select both a start and end room.");
+      setNotifType("error");
+      setShowNotif(true);
+      setTimeout(() => setShowNotif(false), 3000);
     }
-  } else {
-    alert("Please select both a start and end room.");
-  }
-};
+  };
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
@@ -179,12 +187,24 @@ const CampusMap = () => {
     return <g>{pathElements}</g>;
   };
 
+
+
   if (isLoading) {
     return <LoadingPage />;
   }
 
   return (
     <div className={`min-h-screen bg-gray-900 flex ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
+      {/* Notification Component */}
+      <div className="fixed bottom-4 right-4 z-50">
+        {showNotif && (
+          <Notification
+            message={notifMsg}
+            type={notifType}
+            onClose={() => setShowNotif(false)}
+          />
+        )}
+      </div>
       {/* Mobile Header */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700">
         <div className="flex items-center justify-between p-4">
@@ -425,6 +445,9 @@ const CampusMap = () => {
           </div>
         </div>
       </div>
+
+      {/* Notification Component - for demonstration */}
+      
     </div>
   );
 };
