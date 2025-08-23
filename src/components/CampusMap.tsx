@@ -28,10 +28,8 @@ const CampusMap = () => {
 
   // Auto-close sidebar on mobile after selection
   useEffect(() => {
-    if (window.innerWidth < 768 && startRoom && endRoom) {
-      setIsSidebarOpen(false);
-    }
-  }, [startRoom, endRoom]);
+  
+}, [startRoom, endRoom]);
 
   const drawPath = (shortestPath: string[]) => {
     if (shortestPath.length > 0) {
@@ -41,37 +39,35 @@ const CampusMap = () => {
     }
   };
 
+
   const clearPath = () => {
-    setPath([]);
-  };
+  setPath([]);
+  setStartRoom("");
+  setEndRoom("");
+
+  // Auto-open sidebar on mobile so user can pick again
+  if (window.innerWidth < 768) {
+    setIsSidebarOpen(false);
+  }
+};
+
+
+
 
   const handleFindPath = () => {
-    if (startRoom && endRoom) {
-      const pathfinder = new PathfindingEngine(GRAPH);
-      const shortestPath = pathfinder.findShortestPath(startRoom, endRoom);
-      drawPath(shortestPath);
-    } else {
-      alert("Please select both a start and end room.");
+  if (startRoom && endRoom) {
+    const pathfinder = new PathfindingEngine(GRAPH);
+    const shortestPath = pathfinder.findShortestPath(startRoom, endRoom);
+    drawPath(shortestPath);
+
+    // Auto-close sidebar on mobile
+    if (window.innerWidth < 768) {
+      setIsSidebarOpen(false);
     }
-  };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging) {
-      setPan({
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y,
-      });
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
+  } else {
+    alert("Please select both a start and end room.");
+  }
+};
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
@@ -79,50 +75,12 @@ const CampusMap = () => {
     setZoom((prevZoom) => Math.max(0.3, Math.min(3, prevZoom * scaleFactor)));
   };
 
-  // Touch events for mobile
-  const [lastTouchDistance, setLastTouchDistance] = useState(0);
-  
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      const distance = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      setLastTouchDistance(distance);
-    } else if (e.touches.length === 1) {
-      setIsDragging(true);
-      setDragStart({ 
-        x: e.touches[0].clientX - pan.x, 
-        y: e.touches[0].clientY - pan.y 
-      });
-    }
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    e.preventDefault();
-    if (e.touches.length === 2) {
-      const distance = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      const scaleFactor = distance / lastTouchDistance;
-      setZoom((prevZoom) => Math.max(0.3, Math.min(3, prevZoom * scaleFactor)));
-      setLastTouchDistance(distance);
-    } else if (e.touches.length === 1 && isDragging) {
-      setPan({
-        x: e.touches[0].clientX - dragStart.x,
-        y: e.touches[0].clientY - dragStart.y,
-      });
-    }
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-  };
-
   const resetView = () => {
     setPan({ x: 0, y: 0 });
     setZoom(1);
+    if (window.innerWidth < 768) {
+    setIsSidebarOpen(false);
+  }
   };
 
   const renderPathWithCorridors = () => {
@@ -372,19 +330,6 @@ const CampusMap = () => {
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-2">
-              <div className="hidden sm:block text-sm text-gray-400">
-                Pinch to zoom • Drag to pan
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsFullscreen(!isFullscreen)}
-                className="text-gray-400 hover:text-white hover:bg-gray-700"
-              >
-                {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-              </Button>
-            </div>
           </div>
         </div>
 
@@ -393,13 +338,7 @@ const CampusMap = () => {
           <svg
             ref={svgRef}
             className="w-full h-full cursor-move select-none"
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
             onWheel={handleWheel}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
             style={{ touchAction: 'none' }}
           >
             <defs>

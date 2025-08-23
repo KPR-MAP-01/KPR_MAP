@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 const LoadingPage = () => {
@@ -8,9 +7,11 @@ const LoadingPage = () => {
         {/* Logo Circle */}
         <div className="mb-8 flex justify-center">
           <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-lg">
-            <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-lg">KPR</span>
-            </div>
+            <img
+              src="/KPRCAS LOGO.jpg"
+              alt="KPRCAS Logo"
+              className="w-20 h-20 object-contain rounded-full"
+            />
           </div>
         </div>
         
